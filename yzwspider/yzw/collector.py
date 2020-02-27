@@ -17,11 +17,11 @@ class YzwCollector(MemoryStatsCollector):
             finish_time = self._stats['finish_time']
             if self._stats['finish_reason'] == 'finished':
                 logger.info("""数据抓取完成, 共计 {0} 条数据，
-                    程序开始时间 {1} , 结束时间 {2}, 耗时 {3} 分钟"""
+                    程序开始时间 {1} , 结束时间 {2}, 耗时 {3} 秒 """
                             .format(self._stats['item_scraped_count'],
                                 start_time.strftime('%Y-%m-%d %H:%M:%S'),
                                 finish_time.strftime('%Y-%m-%d %H:%M:%S'),
-                                int((finish_time - start_time).seconds / 60))
+                                int((finish_time - start_time).seconds))
                             )
             else:
                 logger.info("异常终止:\n" + pprint.pformat(self._stats),

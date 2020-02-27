@@ -9,6 +9,11 @@ from yzwspider.yzw.items import YzwItem
 
 logger = logging.getLogger("YzwPipeline")
 
+def is_chinese(word):
+    for ch in word:
+        if '\u4e00' <= ch <= '\u9fff':
+            return True
+    return False
 
 class YzwPipeline(object):
     def __init__(self, pool, settings):
@@ -16,7 +21,10 @@ class YzwPipeline(object):
         self.settings = settings
         self.excelstyle = self.getExcelStyle()
         excel_path = os.getcwd() if settings.get("EXCEL_FILE_PATH") == '.' else settings.get("EXCEL_FILE_PATH")
-        excel_file = settings.get("EXCEL_FILE_NAME") + '.xls'
+        province = settings.get("SSDM")
+        if is_chinese(province) is False:
+            province = self.settings.get('PROVINCE_DICT')[province]
+        excel_file = province + settings.get("YJXKDM")+ settings.get("EXCEL_FILE_NAME") + '.xls'
         self.excelFile = os.path.join(excel_path, excel_file)
 
     @classmethod
@@ -107,6 +115,7 @@ class YzwPipeline(object):
         for i in range(0, YzwItem.fields.__len__()):
             ret = self.sheet.write(self.row, i, item[self.list[i]], style)
         self.row += 1
+        logger.info(item['招生单位'])
 
     def getExcelStyle(self):
         style = xlwt.XFStyle()

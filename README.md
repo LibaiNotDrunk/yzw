@@ -57,7 +57,7 @@ CREATE TABLE `major` (
 https://yz.chsi.com.cn/zsml/queryAction.do
 
 ```
-python -m yzwspider [-h] [-ssdm] [-mldm] [-yjxk] [--all] [--log] 输出目标 [其他参数]
+python -m yzwspider [-h] [-ssdm] [-mldm] [-xxfs] [-yjxk] [-ywky] [-wy] [-feature] [--all] [--log] 输出目标 [其他参数]
 ```
 
 yzwspider参数： （括号内为默认值）
@@ -67,6 +67,14 @@ yzwspider参数： （括号内为默认值）
 > **-mldm：** 门类代码(01)  支持中文名： 理学、工学等
 >
 > **-yjxk:**  一级学科代码(0101)
+> 
+> **-xxfs:**  学习方式，可选全日制、非全日制(默认全部)
+> 
+> **-ywky-**  业务课一，可选数学一、数学二、其他（默认全部）
+> 
+> **-wy-**    外语，可选英语一、英语二（默认全部）
+> 
+> **-feature-** 学校特性，可选211、985（默认全部）
 >
 > **--all：**爬取全部专业信息并只可输出到mysql
 >
@@ -94,6 +102,7 @@ yzwspider参数： （括号内为默认值）
 
 ```
  python -m yzwspider -ssdm 11 -yjxk 0812 excel
+ python -m yzwspider -ssdm 北京 -yjxk 0854 -xxfs 全日制 -ywky 数学二 -wy 英语二 -feature 211 excel
 ```
 
 上条语句可将"-ssdm 11"替换为"-ssdm 北京"同样生效。

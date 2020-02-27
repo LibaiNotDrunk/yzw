@@ -89,10 +89,34 @@ class SchoolsSpider(scrapy.Spider):
                 item['专业代码'] = item['专业'][1:7]
                 item['门类'] = self.settings.get('SUBJECT_INDEX')[item['专业代码'][:2]]
                 item['一级学科'] = self.firstClassSubjectIndex[item['专业代码'][:4]]
-                self.logger.info(item)
-                yield item
+                # self.logger.info(item)
+                if self.item_filter(item):
+                    yield item
         except Exception as e:
             self.logger.error(traceback.format_exc())
+
+    def item_filter(self, item):
+        if self.settings.get('XXFS') != '':
+            if self.settings.get('XXFS') != item['学习方式']:
+                return False
+        if self.settings.get('YWKY') != '':
+            if self.settings.get('YWKY') == '其他':
+                if re.search('数学一|数学二', item['业务课一']):
+                    return False
+            else:
+                if re.search(self.settings.get('YWKY'), item['业务课一']) is None:
+                    return False
+        if self.settings.get('WY') != '':
+            if re.search(self.settings.get('WY'), item['外语']) is None:
+                return False
+        if self.settings.get('FEATURE') != '':
+            if self.settings.get('FEATURE') == '211':
+                if item['院校特性'] == '':
+                    return False
+            elif self.settings.get('FEATURE') == '985':
+                if item['院校特性'] != '985':
+                    return False
+        return True
 
     # 生成省市代码， 一级学科代码
     def __ssdm_yjxk(self, ssdm, yjxkdm):

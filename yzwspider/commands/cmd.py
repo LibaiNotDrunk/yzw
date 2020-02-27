@@ -41,7 +41,11 @@ def general_settings(args):
     prams['SSDM'] = prams['SSDM'] if not is_chinese(prams['SSDM']) else prov_num[prams['SSDM']]
     prams['MLDM'] = args.mldm if args.all is False else ''
     prams['MLDM'] = prams['MLDM'] if not is_chinese(prams['MLDM']) else subj_num[prams['MLDM']]
+    prams['XXFS'] = args.xxfs if args.all is False else ''
     prams['YJXKDM'] = args.yjxk if args.all is False else ''
+    prams['YWKY'] = args.ywky if args.all is False else ''
+    prams['WY'] = args.wy if args.all is False else ''
+    prams['FEATURE'] = args.feature if args.all is False else ''
     prams['LOG_LEVEL'] = args.lglevel
     if not args.log:
         prams['LOG_FILE'] = None
@@ -58,7 +62,7 @@ def get_settings(args):
 
 
 def args_parse():
-    usage = """yzwspider [-h] [-ssdm] [-mldm] [-yjxk] [-lglevel] [--all] [--log] 输出目标 [其他参数]
+    usage = """yzwspider [-h] [-ssdm] [-mldm] [-xxfs] [-yjxk] [-ywky] [-wy] [-feature] [-lglevel] [--all] [--log] 输出目标 [其他参数]
               \t例, yzwspider -ssdm 11 -yjxk 0812 excel -o 文件输出路径
               \t    yzwspider -ssdm 11 -yjxk 0812 mysql -p 你的密码 -db 数据库 -table 数据表
               \t    具体参数以及默认值请使用 yzwspider 输出目标 -h 查看
@@ -66,7 +70,11 @@ def args_parse():
     parser = argparse.ArgumentParser(prog='yzwspider', usage=usage)
     parser.add_argument('-ssdm', help='省市代码(默认11)，中文名称也可.', choices=[*PROVINCE_DICT.keys(), *PROVINCE_DICT.values()], metavar='省市代码', default='11')
     parser.add_argument('-mldm', help="门类代码(默认01)", choices=[*SUBJECT_INDEX.keys(), *SUBJECT_INDEX.values()], metavar='门类代码', default='01')
+    parser.add_argument('-xxfs', help="学习方式(默认无)", choices=['全日制', '非全日制'], metavar='学习方式', default='')
     parser.add_argument('-yjxk', help='一级学科代码(默认0101)', metavar='一级学科代码', default='0101')
+    parser.add_argument('-ywky', help="业务课一(默认无)", choices=['数学一', '数学二', '其他'], metavar='业务课一', default='')
+    parser.add_argument('-wy', help="外语(默认无)", choices=['英语一', '英语二'], metavar='外语', default='')
+    parser.add_argument('-feature', help="211/985(默认无)", choices=['211', '985'], metavar='211/985', default='')
     parser.add_argument('-lglevel', help='日志等级(INFO)', metavar='日志等级', default='INFO')
     parser.add_argument('--all', help='爬取全国所有专业并输出到mysql',  action='store_true')
     parser.add_argument('--log', help='保存日志文件', action='store_true')
@@ -103,3 +111,6 @@ def is_chinese(word):
         if '\u4e00' <= ch <= '\u9fff':
             return True
     return False
+
+if __name__ == '__main__':
+    run()
