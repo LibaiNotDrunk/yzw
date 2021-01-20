@@ -24,7 +24,7 @@ WY = ''
 FEATURE = ''
 
 # MYSQL
-MYSQL = False
+MYSQL = True
 HOST = 'localhost'
 USER = 'root'
 PASSWORD = ''

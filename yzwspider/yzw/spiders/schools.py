@@ -2,6 +2,7 @@
 import scrapy
 import re
 import os
+import copy
 import traceback
 from yzwspider.yzw.items import YzwItem
 
@@ -91,7 +92,7 @@ class SchoolsSpider(scrapy.Spider):
                 item['一级学科'] = self.firstClassSubjectIndex[item['专业代码'][:4]]
                 # self.logger.info(item)
                 if self.item_filter(item):
-                    yield item
+                    yield copy.deepcopy(item)
         except Exception as e:
             self.logger.error(traceback.format_exc())
 

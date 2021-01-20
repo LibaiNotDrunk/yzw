@@ -5,6 +5,7 @@ import logging
 import os
 from twisted.enterprise import adbapi
 import traceback
+import copy
 from yzwspider.yzw.items import YzwItem
 
 logger = logging.getLogger("YzwPipeline")
@@ -22,8 +23,9 @@ class YzwPipeline(object):
         self.excelstyle = self.getExcelStyle()
         excel_path = os.getcwd() if settings.get("EXCEL_FILE_PATH") == '.' else settings.get("EXCEL_FILE_PATH")
         province = settings.get("SSDM")
-        if is_chinese(province) is False:
-            province = self.settings.get('PROVINCE_DICT')[province]
+        if province != "":
+            if is_chinese(province) is False:
+                province = self.settings.get('PROVINCE_DICT')[province]
         excel_file = province + settings.get("YJXKDM")+ settings.get("EXCEL_FILE_NAME") + '.xls'
         self.excelFile = os.path.join(excel_path, excel_file)
 
@@ -52,6 +54,7 @@ class YzwPipeline(object):
             sql = self.settings.get("CREATE_TEBLE_SQL").format(self.settings.get("TABLE"))
             re = txn.execute(sql)
             logger.info("创建表:'%s'成功." % self.settings.get('TABLE'))
+            print("创建表:'%s'成功." % self.settings.get('TABLE'))
         except Exception as e:
             logger.critical(traceback.format_exc())
 
@@ -82,7 +85,8 @@ class YzwPipeline(object):
             logger.critical(traceback.format_exc())
 
     def process_mysql(self, item):
-        result = self.dbpool.runInteraction(self.insert, item)
+        mysql_item=copy.deepcopy(item)
+        result = self.dbpool.runInteraction(self.insert, mysql_item)
         # 给result绑定一个回调函数，用于监听错误信息
         result.addErrback(self.error)
 
