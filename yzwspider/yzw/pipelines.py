@@ -7,6 +7,9 @@ from twisted.enterprise import adbapi
 import traceback
 import copy
 from yzwspider.yzw.items import YzwItem
+import queue
+import sqlite3
+import redis
 
 logger = logging.getLogger("YzwPipeline")
 
@@ -42,8 +45,9 @@ class YzwPipeline(object):
         )
         db_connect_pool = None
         if settings.get("MYSQL"):
-            YzwPipeline.__test_mysql_settings(**params)
-            db_connect_pool = adbapi.ConnectionPool('pymysql', **params)
+            # YzwPipeline.__test_mysql_settings(**params)
+            # db_connect_pool = adbapi.ConnectionPool('pymysql', **params)
+            db_connect_pool = True
         obj = cls(db_connect_pool, settings)
         return obj
 
@@ -60,20 +64,62 @@ class YzwPipeline(object):
 
     def open_spider(self, spider):
         if self.dbpool:
-            obj = self.dbpool.runInteraction(self._create_table)
+            self.dataQ = queue.Queue(0)
+            try:
+                sqlite_conn = sqlite3.connect('yanzhao.db')
+                sqlite_cursor = sqlite_conn.cursor()
+                sql = "DROP TABLE IF EXISTS `{0}`".format(self.settings.get("TABLE"))
+                logger.info("sqlite: " +sql)
+                sqlite_cursor.execute(sql)
+                logger.info("CREATE_TEBLE_SQLITE: " +self.settings.get("CREATE_TEBLE_SQLITE"))
+                sql = self.settings.get("CREATE_TEBLE_SQLITE").format(self.settings.get("TABLE"))
+                logger.info("sqlite: " +sql)
+                sqlite_cursor.execute(sql)
+                sqlite_conn.commit()
+                sqlite_conn.close()
+                redis_conn_pool = redis.ConnectionPool(host='localhost',port=6379, max_connections=256, decode_responses=True)
+                # self.myRedis = redis.Redis(connection_pool=redis_conn_pool)
+                # if self.myRedis.exists("ALL"):
+                #     self.myRedis.delete("ALL")
+            except Exception as e:
+                logger.critical(traceback.format_exc())
+                os._exit(1)
+            # obj = self.dbpool.runInteraction(self._create_table)
         else:
             self.newExcelFile()
 
     def close_spider(self, spider):
         try:
             if self.dbpool:
-                self.dbpool.close()
-                logger.info("数据已存储于数据库" + self.settings.get("DATABASE") + "， 表：" + self.settings.get("TABLE"))
+                # self.dbpool.close()
+                # logger.info("数据已存储于数据库" + self.settings.get("DATABASE") + "， 表：" + self.settings.get("TABLE"))
+                sqlite_conn = sqlite3.connect('yanzhao.db')
+                sqlite_cursor = sqlite_conn.cursor()
+                # while self.dataQ.qsize()>0:
+                #     sqlite_conn.execute("BEGIN TRANSACTION;")
+                #     if self.dataQ.qsize()>=10000:
+                #         for index in range(10000):
+                #             sqlite_cursor.execute(self.dataQ.get())
+                #     else:
+                #         while not self.dataQ.empty():
+                #             sqlite_cursor.execute(self.dataQ.get())
+                #     sqlite_conn.execute("COMMIT;")
+                sqlite_conn.execute("BEGIN TRANSACTION;")
+                while not self.dataQ.empty():
+                    sqlite_cursor.execute(self.dataQ.get())
+                sqlite_conn.execute("COMMIT;")
+                # sqlite_conn.execute("BEGIN TRANSACTION;")
+                # myRedis_len = self.myRedis.llen("ALL")
+                # for index in range(myRedis_len):
+                #     sqlite_cursor.execute(self.myRedis.lpop("ALL"))
+                # sqlite_conn.execute("COMMIT;")
+                sqlite_conn.close()
+                logger.info("数据已存储于数据库yanzhao.db， 表：" + self.settings.get("TABLE"))
             else:
                 self.wbk.save(self.excelFile)
                 logger.info("excel文件已存储于 " + self.excelFile)
         except Exception as e:
-            logger.error(traceback.format_exc())
+            logger.critical(traceback.format_exc())
 
     def process_item(self, item, spider):
         try:
@@ -86,19 +132,22 @@ class YzwPipeline(object):
 
     def process_mysql(self, item):
         mysql_item=copy.deepcopy(item)
-        result = self.dbpool.runInteraction(self.insert, mysql_item)
+        # result = self.dbpool.runInteraction(self.insert, mysql_item)
         # 给result绑定一个回调函数，用于监听错误信息
-        result.addErrback(self.error)
+        # result.addErrback(self.error)
+        self.insert(mysql_item)
 
-    def insert(self, cursor, item):
+    def insert(self, item): # insert(self, cursor, item):
         insert_sql = "insert into {0} (`id`, `招生单位`, `院校特性`, `院系所`, `专业`,`研究方向`,`学习方式`, `拟招生人数`" \
                      ", `业务课一`, `业务课二`, `外语`, `政治`, `所在地`, `专业代码`,`指导老师`, `门类`, `一级学科` ) " \
-                     "VALUES ('{1}','{2}','{3}','{4}','{5}','{6}','{7}','{8}','{9}','{10}','{11}','{12}','{13}','{14}', '{15}', '{16}','{17}')" \
+                     "VALUES ('{1}','{2}','{3}','{4}','{5}','{6}','{7}','{8}','{9}','{10}','{11}','{12}','{13}','{14}', '{15}', '{16}','{17}');" \
             .format(self.settings.get('TABLE'), item['id'], item['招生单位'], item['院校特性'], item['院系所'], item['专业'],
                     item['研究方向'], item['学习方式'], item['拟招生人数'],
                     item['业务课一'], item['业务课二'], item['外语'], item['政治'], item['所在地'], item['专业代码'], item['指导老师'],
                     item['门类'], item['一级学科'])
-        cursor.execute(insert_sql)
+        # cursor.execute(insert_sql)
+        self.dataQ.put(insert_sql)
+        # self.myRedis.rpush("ALL", insert_sql)
 
     def error(self, reason):
         # 跳过主键重复error

@@ -4,7 +4,7 @@
 BOT_NAME = 'yzw'
 SPIDER_MODULES = ['yzwspider.yzw.spiders']
 USER_AGENT = 'Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2228.0 Safari/537.36'
-CONCURRENT_REQUESTS = 32
+CONCURRENT_REQUESTS = 128
 ITEM_PIPELINES = {
     'yzwspider.yzw.pipelines.YzwPipeline': 300,
 }
@@ -83,3 +83,21 @@ CREATE_TEBLE_SQL = "CREATE TABLE `{0}` (" \
                    "`门类` varchar(20) DEFAULT NULL," \
                    "`一级学科` varchar(40) DEFAULT NULL)" \
                    " ENGINE=MyISAM DEFAULT CHARSET=utf8"
+
+CREATE_TEBLE_SQLITE = "CREATE TABLE `{0}` (" \
+                   "`id` char(21) PRIMARY KEY,`招生单位` varchar(40) NOT NULL," \
+                   "`院校特性` varchar(10) DEFAULT NULL," \
+                   "`院系所` varchar(40) DEFAULT NULL," \
+                   "`专业` varchar(40) DEFAULT NULL," \
+                   "`研究方向` TINYTEXT DEFAULT NULL," \
+                   "`学习方式` varchar(30) DEFAULT NULL," \
+                   "`拟招生人数` varchar(40) DEFAULT NULL," \
+                   "`业务课一` varchar(40) DEFAULT NULL," \
+                   "`业务课二` varchar(40) DEFAULT NULL," \
+                   "`外语` varchar(40) DEFAULT NULL," \
+                   "`政治` varchar(40) DEFAULT NULL," \
+                   "`所在地` varchar(30) DEFAULT NULL," \
+                   "`指导老师` TINYTEXT DEFAULT NULL," \
+                   "`专业代码` varchar(10) DEFAULT NULL," \
+                   "`门类` varchar(20) DEFAULT NULL," \
+                   "`一级学科` varchar(40) DEFAULT NULL)"

@@ -33,12 +33,17 @@ class SchoolsSpider(scrapy.Spider):
     def parse(self, response):
         for tr in response.xpath('//tbody/tr'):
             try:
-                schName = tr.xpath('.//a[re:test(@href,"/zsml/querySchAction.do?")]/text()').extract()[0][7:]
-                url = re.sub(r'queryAction', 'querySchAction', response.url)
-                url = re.sub(r'dwmc=', 'dwmc=' + schName, url)
-                yield scrapy.Request(url, meta={'ssdm':response.meta['ssdm']}, callback=self.parse_school)
+                schName = tr.xpath('.//a[re:test(@href,"/zsml/querySchAction.do?")]/text()').extract()[0]
+                if schName != None:
+                    schName = schName[7:]
+                    url = re.sub(r'queryAction', 'querySchAction', response.url)
+                    url = re.sub(r'dwmc=', 'dwmc=' + schName, url)
+                    yield scrapy.Request(url, meta={'ssdm':response.meta['ssdm']}, callback=self.parse_school)
+                else:
+                    self.logger.error("No schName, url=" + response.request.url+"!!")
             except Exception as e:
                 self.logger.error(traceback.format_exc())
+                self.logger.error("ERROR, url=" + response.request.url+"!!")
                 continue
         # 翻页
         url = self.__next_page_url(response)
