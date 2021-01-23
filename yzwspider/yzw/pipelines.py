@@ -34,15 +34,15 @@ class YzwPipeline(object):
 
     @classmethod
     def from_settings(cls, settings):
-        params = dict(
-            host=settings.get("HOST"),
-            port=settings.get("PORT"),
-            db=settings.get("DATABASE"),
-            user=settings.get("USER"),
-            passwd=settings.get("PASSWORD"),
-            charset=settings.get("CHARSET"),
-            cursorclass=pymysql.cursors.DictCursor
-        )
+        # params = dict(
+        #     host=settings.get("HOST"),
+        #     port=settings.get("PORT"),
+        #     db=settings.get("DATABASE"),
+        #     user=settings.get("USER"),
+        #     passwd=settings.get("PASSWORD"),
+        #     charset=settings.get("CHARSET"),
+        #     cursorclass=pymysql.cursors.DictCursor
+        # )
         db_connect_pool = None
         if settings.get("MYSQL"):
             # YzwPipeline.__test_mysql_settings(**params)
@@ -66,7 +66,7 @@ class YzwPipeline(object):
         if self.dbpool:
             self.dataQ = queue.Queue(0)
             try:
-                sqlite_conn = sqlite3.connect('yanzhao.db')
+                sqlite_conn = sqlite3.connect(self.settings.get("DATABASE")+".db")
                 sqlite_cursor = sqlite_conn.cursor()
                 sql = "DROP TABLE IF EXISTS `{0}`".format(self.settings.get("TABLE"))
                 logger.info("sqlite: " +sql)
@@ -93,7 +93,7 @@ class YzwPipeline(object):
             if self.dbpool:
                 # self.dbpool.close()
                 # logger.info("数据已存储于数据库" + self.settings.get("DATABASE") + "， 表：" + self.settings.get("TABLE"))
-                sqlite_conn = sqlite3.connect('yanzhao.db')
+                sqlite_conn = sqlite3.connect(self.settings.get("DATABASE")+".db")
                 sqlite_cursor = sqlite_conn.cursor()
                 # while self.dataQ.qsize()>0:
                 #     sqlite_conn.execute("BEGIN TRANSACTION;")
@@ -114,7 +114,7 @@ class YzwPipeline(object):
                 #     sqlite_cursor.execute(self.myRedis.lpop("ALL"))
                 # sqlite_conn.execute("COMMIT;")
                 sqlite_conn.close()
-                logger.info("数据已存储于数据库yanzhao.db， 表：" + self.settings.get("TABLE"))
+                logger.info("数据已存储于数据库" + self.settings.get("DATABASE") +".db， 表：" + self.settings.get("TABLE"))
             else:
                 self.wbk.save(self.excelFile)
                 logger.info("excel文件已存储于 " + self.excelFile)
