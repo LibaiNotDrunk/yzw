@@ -9,7 +9,7 @@ import copy
 from yzwspider.yzw.items import YzwItem
 import queue
 import sqlite3
-import redis
+# import redis
 
 logger = logging.getLogger("YzwPipeline")
 
@@ -77,7 +77,7 @@ class YzwPipeline(object):
                 sqlite_cursor.execute(sql)
                 sqlite_conn.commit()
                 sqlite_conn.close()
-                redis_conn_pool = redis.ConnectionPool(host='localhost',port=6379, max_connections=256, decode_responses=True)
+                # redis_conn_pool = redis.ConnectionPool(host='localhost',port=6379, max_connections=256, decode_responses=True)
                 # self.myRedis = redis.Redis(connection_pool=redis_conn_pool)
                 # if self.myRedis.exists("ALL"):
                 #     self.myRedis.delete("ALL")
